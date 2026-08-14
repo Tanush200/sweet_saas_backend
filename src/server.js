@@ -14,6 +14,7 @@ const allowedOrigins = process.env.CORS_ALLOWED_ORIGINS
       'http://localhost:3000',
       'http://127.0.0.1:3000',
       'http://localhost:5000',
+      'https://sweet-saas-frontend.vercel.app',
       process.env.FRONTEND_URL
     ].filter(Boolean);
 
