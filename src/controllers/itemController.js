@@ -72,7 +72,10 @@ const Shop = require('../models/Shop');
 
 const getPublicItems = async (req, res) => {
   try {
-    const shopSlug = req.query?.shopSlug || 'royal-sweet-shop';
+    const shopSlug = req.query?.shopSlug;
+    if (!shopSlug) {
+      return res.status(400).json({ success: false, message: 'shopSlug query parameter is required' });
+    }
 
     const shop = await Shop.findOne({
       $or: [{ slug: shopSlug }, { _id: shopSlug }, { slug: shopSlug.toLowerCase() }]
@@ -83,9 +86,7 @@ const getPublicItems = async (req, res) => {
         shopSlug,
         shopSlug.toLowerCase(),
         shop?._id,
-        shop?.slug,
-        'shop_001',
-        'demo_tenant'
+        shop?.slug
       ].filter(Boolean))
     );
 
@@ -95,15 +96,22 @@ const getPublicItems = async (req, res) => {
       .sort({ createdAt: -1 })
       .lean();
 
+    const formattedSlugName = shopSlug
+      .split('-')
+      .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
+      .join(' ');
+
+    const shopData = {
+      name: shop?.name || formattedSlugName,
+      nameBn: shop?.nameBn || shop?.name || formattedSlugName,
+      phone: shop?.phone || '+91 98300 98300',
+      address: shop?.address || 'Kolkata, West Bengal',
+      tagline: shop?.tagline || 'Traditional Fresh Sweets & Snacks'
+    };
+
     res.json({
       success: true,
-      shop: shop || {
-        name: 'Royal Sweet Shop',
-        nameBn: 'রয়্যাল মিষ্টি শপ',
-        phone: '+91 98300 98300',
-        address: 'Central Avenue, Kolkata',
-        tagline: 'Traditional Bengali Sweets & Namkeen'
-      },
+      shop: shopData,
       items: items || []
     });
   } catch (err) {

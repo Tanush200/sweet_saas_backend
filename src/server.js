@@ -37,7 +37,8 @@ app.use(
   })
 );
 
-app.use(express.json());
+app.use(express.json({ limit: '15mb' }));
+app.use(express.urlencoded({ limit: '15mb', extended: true }));
 
 // Connect Database
 connectDB();
@@ -59,6 +60,21 @@ app.get('/api/health', (req, res) => {
     status: 'OK',
     service: 'SweetShop SaaS Backend API (মিষ্টি সাশ)',
     timestamp: new Date()
+  });
+});
+
+// Global Error Handler (Handles PayloadTooLargeError & 413 gracefully)
+app.use((err, req, res, next) => {
+  if (err.type === 'entity.too.large' || err.status === 413) {
+    return res.status(413).json({
+      success: false,
+      message: 'Uploaded file size is too large. Please upload an image smaller than 10MB.'
+    });
+  }
+  console.error('[Server Error]:', err.message);
+  res.status(err.status || 500).json({
+    success: false,
+    message: err.message || 'Internal Server Error'
   });
 });
 
