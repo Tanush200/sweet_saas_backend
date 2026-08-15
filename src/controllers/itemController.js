@@ -68,19 +68,44 @@ const deleteItem = async (req, res) => {
   }
 };
 
+const Shop = require('../models/Shop');
+
 const getPublicItems = async (req, res) => {
   try {
-    const shopSlug = req.query?.shopSlug;
-    if (!shopSlug) {
-      return res.status(400).json({ success: false, message: 'shopSlug query param is required' });
-    }
+    const shopSlug = req.query?.shopSlug || 'royal-sweet-shop';
+
+    const shop = await Shop.findOne({
+      $or: [{ slug: shopSlug }, { _id: shopSlug }, { slug: shopSlug.toLowerCase() }]
+    }).lean();
+
+    const tenantQueryIds = Array.from(
+      new Set([
+        shopSlug,
+        shopSlug.toLowerCase(),
+        shop?._id,
+        shop?.slug,
+        'shop_001',
+        'demo_tenant'
+      ].filter(Boolean))
+    );
+
     const items = await Item.find({
-      $or: [{ tenantId: shopSlug }, { tenantId: shopSlug.toLowerCase() }]
+      tenantId: { $in: tenantQueryIds }
     })
       .sort({ createdAt: -1 })
       .lean();
 
-    res.json({ success: true, items: items || [] });
+    res.json({
+      success: true,
+      shop: shop || {
+        name: 'Royal Sweet Shop',
+        nameBn: 'রয়্যাল মিষ্টি শপ',
+        phone: '+91 98300 98300',
+        address: 'Central Avenue, Kolkata',
+        tagline: 'Traditional Bengali Sweets & Namkeen'
+      },
+      items: items || []
+    });
   } catch (err) {
     res.status(500).json({ success: false, message: err.message });
   }
