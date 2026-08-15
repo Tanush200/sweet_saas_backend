@@ -68,4 +68,22 @@ const deleteItem = async (req, res) => {
   }
 };
 
-module.exports = { getItems, createItem, updateItem, deleteItem };
+const getPublicItems = async (req, res) => {
+  try {
+    const shopSlug = req.query?.shopSlug;
+    if (!shopSlug) {
+      return res.status(400).json({ success: false, message: 'shopSlug query param is required' });
+    }
+    const items = await Item.find({
+      $or: [{ tenantId: shopSlug }, { tenantId: shopSlug.toLowerCase() }]
+    })
+      .sort({ createdAt: -1 })
+      .lean();
+
+    res.json({ success: true, items: items || [] });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+};
+
+module.exports = { getItems, getPublicItems, createItem, updateItem, deleteItem };

@@ -51,6 +51,7 @@ app.use('/api/bulk-orders', require('./routes/bulkOrderRoutes'));
 app.use('/api/raw-materials', require('./routes/rawMaterialRoutes'));
 app.use('/api/supplier-purchases', require('./routes/supplierPurchaseRoutes'));
 app.use('/api/sales', require('./routes/saleRoutes'));
+app.use('/api/upload', require('./routes/uploadRoutes'));
 
 // Health check endpoint
 app.get('/api/health', (req, res) => {
